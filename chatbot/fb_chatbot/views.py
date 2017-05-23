@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import json, random, re
+import json, requests, random, re
 from pprint import pprint
 
 from django.shortcuts import render
@@ -12,9 +12,19 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 # Create your views here.
 
+# PAGE_ACCESS_TOKEN = 'EAATlAEoSaTQBAL66HkhAbskaZCxGYOL4iuTHZAacmBQz9hYC924DVOZAZBpPiqaFpkCqjZCMgZB4Ox4oJ4P88jkpZA6buIeonXPAEKTVkZBWMNfXIpWWrH4TLEJ83OJNcIECybY4HUgVVGKPteQqqXQuqlOmEvGcnk73bHXpiFx9wwZDZD'
+
+PAGE_ACCESS_TOKEN = 'EAATlAEoSaTQBAL66HkhAbskaZCxGYOL4iuTHZAacmBQz9hYC924DVOZAZBpPiqaFpkCqjZCMgZB4Ox4oJ4P88jkpZA6buIeonXPAEKTVkZBWMNfXIpWWrH4TLEJ83OJNcIECybY4HUgVVGKPteQqqXQuqlOmEvGcnk73bHXpiFx9wwZDZD'
 # class FBChatBotView(generic.View):
 #     def get(self, request, *args, **kwargs):
 #         return HttpResponse("Hello World!")
+
+def post_facebook_message(fbid, recevied_message):
+	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
+	# post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=<page-access-token>'
+	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":recevied_message}})
+	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+	pprint(status.json())
 
 class FBChatBotView(generic.View):
     def get(self, request, *args, **kwargs):
@@ -34,5 +44,7 @@ class FBChatBotView(generic.View):
 			for message in entry['messaging']:
 				if 'message' in message:
 					pprint(message)
+
+					post_facebook_message(message['sender']['id'], message['message']['text'])
 
 		return HttpResponse()
