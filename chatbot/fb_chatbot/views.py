@@ -27,9 +27,20 @@ PAGE_ACCESS_TOKEN = 'EAATlAEoSaTQBAL66HkhAbskaZCxGYOL4iuTHZAacmBQz9hYC924DVOZAZB
 #         return HttpResponse("Hello World!")
 
 def post_facebook_message(fbid, recevied_message):
+	tokens = re.sub(r"[^a-zA-Z0-9\s]",' ',recevied_message).lower().split()
+	joke_text = ''
+	for token in tokens:
+		if token in jokes:
+			joke_text = random.choice(jokes[token])
+			break
+
+	if not joke_text:
+		joke_text = "I didn't understand! Send 'stupid', 'fat', 'dumb' for a Yo mama joke!"
+
 	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
 	# post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=<page-access-token>'
-	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":recevied_message}})
+	# response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":recevied_message}})
+	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":joke_text}})
 	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
 	pprint(status.json())
 
