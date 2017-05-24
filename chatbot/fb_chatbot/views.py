@@ -26,6 +26,26 @@ PAGE_ACCESS_TOKEN = 'EAATlAEoSaTQBAL66HkhAbskaZCxGYOL4iuTHZAacmBQz9hYC924DVOZAZB
 #     def get(self, request, *args, **kwargs):
 #         return HttpResponse("Hello World!")
 
+def post_facebook_image(fbid, recevied_image):
+	# import ipdb; ipdb.set_trace()
+	user_details_url = "http://graph.facebook.com/v2.6/%s"%fbid
+	user_details_params = {'fields':'first_name,last_name,profile_pic', 'access_token':PAGE_ACCESS_TOKEN}
+	user_details = requests.get(user_details_url, user_details_params).json()
+	try:
+		pprint("The sender's fbid is: %s" %fbid)
+		pprint("The user's first name is: %s" %user_details['first_name'])
+		pprint("The user's last name is %s" %user_details['last_name'])
+		pprint("The user's profile_pic is %s" %user_details['profile_pic'])
+
+	except KeyError:
+		pass
+
+	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
+
+	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"attachments":recevied_image}})
+	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+	pprint(status.json())
+
 def post_facebook_message(fbid, recevied_message):
 	tokens = re.sub(r"[^a-zA-Z0-9\s]",' ',recevied_message).lower().split()
 	joke_text = ''
@@ -42,20 +62,19 @@ def post_facebook_message(fbid, recevied_message):
 	user_details = requests.get(user_details_url, user_details_params).json()
 
 	try:
+		pprint("The sender's fbid is: %s" %fbid)
 		pprint("The user's first name is: %s" %user_details['first_name'])
 		pprint("The user's last name is %s" %user_details['last_name'])
 		pprint("The user's profile_pic is %s" %user_details['profile_pic'])
 		joke_text = "Yo' " + user_details['first_name'] + '..!' + joke_text
-
+		# joke_text = user_details['profile_pic']
 	except KeyError:
 		pass
 
 	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
-	# post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=<page-access-token>'
-	# response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":recevied_message}})
 	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":joke_text}})
 	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
-	pprint(status.json())
+	# pprint(status.json())
 
 class FBChatBotView(generic.View):
     def get(self, request, *args, **kwargs):
@@ -75,7 +94,14 @@ class FBChatBotView(generic.View):
 			for message in entry['messaging']:
 				if 'message' in message:
 					pprint(message)
-
-					post_facebook_message(message['sender']['id'], message['message']['text'])
+					# pprint ("The sender's id is %s" %message['sender']['id'])
+					try:
+						post_facebook_message(message['sender']['id'], message['message']['text'])
+					except KeyError:
+						pprint(message['message']['attachments'])
+						pprint("You sent an image")
+						post_facebook_image(message['sender']['id'], message['message']['attachments'])
 
 		return HttpResponse()
+
+
