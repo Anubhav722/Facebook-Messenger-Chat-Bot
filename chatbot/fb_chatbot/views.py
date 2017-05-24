@@ -38,9 +38,17 @@ def post_facebook_message(fbid, recevied_message):
 		joke_text = "I didn't understand! Send 'stupid', 'fat', 'dumb' for a Yo mama joke!"
 
 	user_details_url = "https://graph.facebook.com/v2.6/%s"%fbid
-	user_details_params = {'fields':'first_name,last_name,profile_pic', 'access_token': PAGE_ACCESS_TOKEN}
+	user_details_params = {'fields':'first_name,last_name,profile_pic', 'access_token':PAGE_ACCESS_TOKEN}
 	user_details = requests.get(user_details_url, user_details_params).json()
-	joke_text = "Yo' " + user_details['first_name'] + '..!' + joke_text
+
+	try:
+		pprint("The user's first name is: %s" %user_details['first_name'])
+		pprint("The user's last name is %s" %user_details['last_name'])
+		pprint("The user's profile_pic is %s" %user_details['profile_pic'])
+		joke_text = "Yo' " + user_details['first_name'] + '..!' + joke_text
+
+	except KeyError:
+		pass
 
 	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
 	# post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=<page-access-token>'
