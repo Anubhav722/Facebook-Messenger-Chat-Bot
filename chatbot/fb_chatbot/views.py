@@ -47,6 +47,29 @@ def post_facebook_image(fbid, recevied_image):
 	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
 	# pprint(status.json())
 
+def post_facebook_call(fbid, recevied_message):
+	tokens = re.sub(r"[^a-zA-Z0-9\s]",' ',recevied_message).lower().split()
+	if 'check' in tokens:
+		message = {
+    		"attachment":{
+      			"type":"template",
+         		"payload":{
+            		"template_type":"button",
+            		"text":"Need further assistance? Talk to a representative",
+            		"buttons":[
+               			{
+                  			"type":"phone_number",
+                  			"title":"Call Representative",
+                  			"payload":"+919644728188"
+               			}
+            				]
+         				}
+    					}
+  					}
+  		post_message_url = "https://graph.facebook.com/me/messages?access_token=%s"%PAGE_ACCESS_TOKEN
+  		response_msg = json.dumps({"recipient":{"id":fbid}, "message":message})
+  		status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+
 def post_facebook_message(fbid, recevied_message):
 	tokens = re.sub(r"[^a-zA-Z0-9\s]",' ',recevied_message).lower().split()
 	joke_text = ''
@@ -102,7 +125,8 @@ class FBChatBotView(generic.View):
 					# pprint(message)
 					# pprint ("The sender's id is %s" %message['sender']['id'])
 					try:
-						post_facebook_message(message['sender']['id'], message['message']['text'])
+						#post_facebook_message(message['sender']['id'], message['message']['text'])
+						post_facebook_call(message['sender']['id'], message['message']['text'])
 					except KeyError:
 						# pprint(message['message']['attachments'])
 						pprint("You sent an image")
