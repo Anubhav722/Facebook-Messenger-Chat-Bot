@@ -28,7 +28,8 @@ PAGE_ACCESS_TOKEN = 'EAATlAEoSaTQBAL66HkhAbskaZCxGYOL4iuTHZAacmBQz9hYC924DVOZAZB
 
 def post_facebook_image(fbid, recevied_image):
 	# import ipdb; ipdb.set_trace()
-	user_details_url = "http://graph.facebook.com/v2.6/%s"%fbid
+	# pprint(recevied_image[0])
+	user_details_url = "https://graph.facebook.com/v2.6/%s"%fbid
 	user_details_params = {'fields':'first_name,last_name,profile_pic', 'access_token':PAGE_ACCESS_TOKEN}
 	user_details = requests.get(user_details_url, user_details_params).json()
 	try:
@@ -42,9 +43,9 @@ def post_facebook_image(fbid, recevied_image):
 
 	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
 
-	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"attachments":recevied_image}})
+	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"attachment":recevied_image[0]}})
 	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
-	pprint(status.json())
+	# pprint(status.json())
 
 def post_facebook_message(fbid, recevied_message):
 	tokens = re.sub(r"[^a-zA-Z0-9\s]",' ',recevied_message).lower().split()
@@ -58,14 +59,19 @@ def post_facebook_message(fbid, recevied_message):
 		joke_text = "I didn't understand! Send 'stupid', 'fat', 'dumb' for a Yo mama joke!"
 
 	user_details_url = "https://graph.facebook.com/v2.6/%s"%fbid
-	user_details_params = {'fields':'first_name,last_name,profile_pic', 'access_token':PAGE_ACCESS_TOKEN}
+	user_details_params = {'fields':'first_name,last_name,profile_pic,gender,locale,timezone,is_payment_enabled,last_ad_referral', 'access_token':PAGE_ACCESS_TOKEN}
 	user_details = requests.get(user_details_url, user_details_params).json()
 
 	try:
-		pprint("The sender's fbid is: %s" %fbid)
-		pprint("The user's first name is: %s" %user_details['first_name'])
-		pprint("The user's last name is %s" %user_details['last_name'])
-		pprint("The user's profile_pic is %s" %user_details['profile_pic'])
+		pprint("The user's gender is: %s" %user_details['gender'])
+		pprint("The user's locale is: %s" %user_details['locale'])
+		pprint("The user's timezone is: %s" %user_details['timezone'])
+		pprint("The user's is_payment_enabled: %s" %user_details['is_payment_enabled'])
+		pprint("The user's last ad referral: %s" %user_details['last_ad_referral'])
+		# pprint("The sender's fbid is: %s" %fbid)
+		# pprint("The user's first name is: %s" %user_details['first_name'])
+		# pprint("The user's last name is %s" %user_details['last_name'])
+		# pprint("The user's profile_pic is %s" %user_details['profile_pic'])
 		joke_text = "Yo' " + user_details['first_name'] + '..!' + joke_text
 		# joke_text = user_details['profile_pic']
 	except KeyError:
@@ -93,12 +99,12 @@ class FBChatBotView(generic.View):
 		for entry in incoming_message['entry']:
 			for message in entry['messaging']:
 				if 'message' in message:
-					pprint(message)
+					# pprint(message)
 					# pprint ("The sender's id is %s" %message['sender']['id'])
 					try:
 						post_facebook_message(message['sender']['id'], message['message']['text'])
 					except KeyError:
-						pprint(message['message']['attachments'])
+						# pprint(message['message']['attachments'])
 						pprint("You sent an image")
 						post_facebook_image(message['sender']['id'], message['message']['attachments'])
 
